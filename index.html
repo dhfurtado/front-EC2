@@ -602,15 +602,15 @@
       const statusPanel = document.getElementById('statusPanel');
       
       const statusItem = document.createElement('div');
-      statusItem.className = status-item ${type};
-      statusItem.innerHTML = 
+      statusItem.className = `status-item ${type}`;
+      statusItem.innerHTML = `
         <div class="status-icon ${type}">${type === 'success' ? '✓' : type === 'error' ? '✗' : '⋯'}</div>
         <div class="status-content">
           <div class="status-title">${title}</div>
           <div class="status-message">${message}</div>
         </div>
         <div class="status-time">${formatTime(time)}</div>
-      ;
+      `;
       
       statusList.appendChild(statusItem);
       statusPanel.classList.add('show');
@@ -656,11 +656,11 @@
 
     function handleFileSelect(file, display, info, nameSpan, sizeSpan) {
       display.classList.add('has-file');
-      display.innerHTML = 
+      display.innerHTML = `
         <div class="file-icon">📄</div>
         <div class="file-text">Arquivo selecionado</div>
         <div class="file-subtext">Pronto para upload</div>
-      ;
+      `;
       
       nameSpan.textContent = file.name;
       sizeSpan.textContent = formatFileSize(file.size);
@@ -672,19 +672,19 @@
       const formData = new FormData();
       formData.append("file", file);
       
-      const button = document.getElementById(btn${tipo.charAt(0).toUpperCase() + tipo.slice(1)});
-      const card = document.getElementById(card${tipo.charAt(0).toUpperCase() + tipo.slice(1)});
+      const button = document.getElementById(`btn${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+      const card = document.getElementById(`card${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
       
       // Estado de loading
       button.disabled = true;
       button.classList.add('loading');
-      button.innerHTML = 
+      button.innerHTML = `
         <div class="loading-spinner"></div>
         <span>Enviando...</span>
-      ;
+      `;
       card.classList.add('processing');
       
-      addStatusItem('processing', Upload de ${tipo}, Enviando arquivo ${file.name}...);
+      addStatusItem('processing', `Upload de ${tipo}`, `Enviando arquivo ${file.name}...`);
 
       try {
         const res = await fetch(url, {
@@ -696,14 +696,14 @@
           // Estado de sucesso
           button.classList.remove('loading');
           button.classList.add('success');
-          button.innerHTML = 
+          button.innerHTML = `
             <span>✓ Enviado com sucesso</span>
-          ;
+          `;
           card.classList.remove('processing');
           
           uploadStates[tipo] = { uploaded: true, uploadTime: new Date() };
           
-          addStatusItem('success', Upload de ${tipo} concluído, Arquivo ${file.name} enviado com sucesso);
+          addStatusItem('success', `Upload de ${tipo} concluído`, `Arquivo ${file.name} enviado com sucesso`);
           
           // Verificar se ambos os arquivos foram enviados
           if (uploadStates.requisitos.uploaded && uploadStates.candidatos.uploaded) {
@@ -714,20 +714,20 @@
           setTimeout(() => {
             button.disabled = false;
             button.classList.remove('success');
-            button.innerHTML = <span>Enviar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</span>;
+            button.innerHTML = `<span>Enviar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</span>`;
           }, 3000);
           
         } else {
-          throw new Error(${res.status} - ${res.statusText});
+          throw new Error(`${res.status} - ${res.statusText}`);
         }
       } catch (err) {
         // Estado de erro
         button.disabled = false;
         button.classList.remove('loading');
         card.classList.remove('processing');
-        button.innerHTML = <span>Tentar novamente</span>;
+        button.innerHTML = `<span>Tentar novamente</span>`;
         
-        addStatusItem('error', Erro no upload de ${tipo}, Falha ao enviar: ${err.message});
+        addStatusItem('error', `Erro no upload de ${tipo}`, `Falha ao enviar: ${err.message}`);
       }
     }
 
@@ -779,7 +779,7 @@
       const automationStatus = document.getElementById('automationStatus');
       const processingTimeSpan = document.getElementById('processingTime');
       
-      processingTimeSpan.textContent = ${processingTime} segundos;
+      processingTimeSpan.textContent = `${processingTime} segundos`;
       
       automationStatus.classList.remove('hidden');
       automationStatus.classList.add('show');
@@ -790,11 +790,11 @@
       // Se você tiver dados específicos do N8N, pode mostrá-los aqui:
       if (statusData) {
         const details = document.getElementById('automationDetails');
-        details.innerHTML = 
+        details.innerHTML = `
           Processamento finalizado em ${processingTime} segundos<br>
           <small>Candidatos analisados: ${statusData.processedRecords || 'N/A'}</small><br>
           <small>Status: ${statusData.message || 'Análise concluída com sucesso'}</small>
-        ;
+        `;
       }
     }
 

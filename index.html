@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload de Arquivos - Recrutamento</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #a78bfa;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --warning: #f59e0b;
+      --warning-light: #fef3c7;
+      --error: #ef4444;
+      --error-light: #fee2e2;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .upload-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-xl);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .upload-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .upload-card:hover::before {
+      opacity: 1;
+    }
+
+    .upload-card.processing::before {
+      opacity: 1;
+      background: linear-gradient(90deg, var(--warning), var(--primary));
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200px 0; }
+      100% { background-position: 200px 0; }
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .card-icon.requisitos {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+
+    .card-icon.candidatos {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: white;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 4px;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .file-input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-display {
+      border: 2px dashed var(--gray-300);
+      border-radius: 16px;
+      padding: 32px 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      background: var(--gray-50);
+      cursor: pointer;
+    }
+
+    .file-input-display:hover,
+    .file-input-display.dragover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .file-input-display.has-file {
+      border-color: var(--success);
+      background: var(--success-light);
+    }
+
+    .file-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      color: var(--gray-400);
+    }
+
+    .file-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+    }
+
+    .file-subtext {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .file-info {
+      display: none;
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      border: 1px solid var(--gray-200);
+    }
+
+    .file-info.show {
+      display: block;
+    }
+
+    .file-details {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .file-name {
+      font-weight: 500;
+      color: var(--gray-800);
+      font-size: 14px;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .submit-button {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .submit-button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .submit-button.loading {
+      background: var(--warning);
+    }
+
+    .submit-button.success {
+      background: var(--success);
+    }
+
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .status-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 24px;
+      margin-top: 24px;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .status-panel.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .status-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-item.processing {
+      background: var(--warning-light);
+      border-left: 4px solid var(--warning);
+    }
+
+    .status-item.success {
+      background: var(--success-light);
+      border-left: 4px solid var(--success);
+    }
+
+    .status-item.error {
+      background: var(--error-light);
+      border-left: 4px solid var(--error);
+    }
+
+    .status-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .status-icon.processing {
+      background: var(--warning);
+      color: white;
+      animation: pulse 2s infinite;
+    }
+
+    .status-icon.success {
+      background: var(--success);
+      color: white;
+    }
+
+    .status-icon.error {
+      background: var(--error);
+      color: white;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-content {
+      flex: 1;
+    }
+
+    .status-title {
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 4px;
+    }
+
+    .status-message {
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .status-time {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-left: auto;
+    }
+
+    .automation-status {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 24px;
+      margin-top: 24px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .automation-status.show {
+      animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .automation-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+    }
+
+    .automation-icon.success {
+      background: linear-gradient(135deg, var(--success), #059669);
+      animation: successPulse 0.6s ease-out;
+    }
+
+    @keyframes successPulse {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .automation-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+    }
+
+    .automation-message {
+      font-size: 16px;
+      color: var(--gray-600);
+      margin-bottom: 16px;
+    }
+
+    .automation-details {
+      font-size: 14px;
+      color: var(--gray-500);
+      background: var(--gray-50);
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 16px;
+      }
+      
+      .upload-card {
+        padding: 24px;
+      }
+      
+      .header h1 {
+        font-size: 28px;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Sistema de Recrutamento</h1>
+      <p>Faça upload dos arquivos e acompanhe o processamento em tempo real</p>
+    </div>
+
+    <div class="upload-card" id="cardRequisitos">
+      <div class="card-header">
+        <div class="card-icon requisitos">📋</div>
+        <div>
+          <div class="card-title">Requisitos da Vaga</div>
+          <div class="card-subtitle">Upload do arquivo de requisitos (.csv, .xlsx)</div>
+        </div>
+      </div>
+      
+      <form id="formRequisitos">
+        <div class="file-input-wrapper">
+          <input type="file" id="fileRequisitos" class="file-input" accept=".csv,.xlsx" required />
+          <div class="file-input-display" id="displayRequisitos">
+            <div class="file-icon">📁</div>
+            <div class="file-text">Clique ou arraste o arquivo aqui</div>
+            <div class="file-subtext">Formatos aceitos: CSV, XLSX</div>
+          </div>
+          <div class="file-info" id="infoRequisitos">
+            <div class="file-details">
+              <span class="file-name" id="nameRequisitos"></span>
+              <span class="file-size" id="sizeRequisitos"></span>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="submit-button" id="btnRequisitos">
+          <span>Enviar Requisitos</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="upload-card" id="cardCandidatos">
+      <div class="card-header">
+        <div class="card-icon candidatos">👥</div>
+        <div>
+          <div class="card-title">Lista de Candidatos</div>
+          <div class="card-subtitle">Upload do arquivo de candidatos (.csv, .xlsx)</div>
+        </div>
+      </div>
+      
+      <form id="formCandidatos">
+        <div class="file-input-wrapper">
+          <input type="file" id="fileCandidatos" class="file-input" accept=".csv,.xlsx" required />
+          <div class="file-input-display" id="displayCandidatos">
+            <div class="file-icon">📁</div>
+            <div class="file-text">Clique ou arraste o arquivo aqui</div>
+            <div class="file-subtext">Formatos aceitos: CSV, XLSX</div>
+          </div>
+          <div class="file-info" id="infoCandidatos">
+            <div class="file-details">
+              <span class="file-name" id="nameCandidatos"></span>
+              <span class="file-size" id="sizeCandidatos"></span>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="submit-button" id="btnCandidatos">
+          <span>Enviar Candidatos</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="status-panel" id="statusPanel">
+      <div id="statusList"></div>
+    </div>
+
+    <div class="automation-status hidden" id="automationStatus">
+      <div class="automation-icon success">✅</div>
+      <div class="automation-title">Automação Concluída!</div>
+      <div class="automation-message">A análise dos candidatos foi processada com sucesso</div>
+      <div class="automation-details" id="automationDetails">
+        Processamento finalizado em <span id="processingTime"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URLs dos webhooks - CONFIGURE ESTAS URLs COM AS SUAS
+    const URL_REQUISITOS = "https://webhooks.getbrain.com.br/webhook/formulario";
+    const URL_CANDIDATOS = "https://webhooks.getbrain.com.br/webhook/48524310-108d-4998-91be-e820525aacfd";
+    
+    // URL para verificar status da automação N8N - SUBSTITUA PELA SUA
+    const URL_STATUS = "https://webhooks.getbrain.com.br/webhook/status"; 
+    
+    let uploadStates = {
+      requisitos: { uploaded: false, uploadTime: null },
+      candidatos: { uploaded: false, uploadTime: null }
+    };
+    
+    let statusCheckInterval = null;
+    let automationStartTime = null;
+
+    // Utilitários
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    function addStatusItem(type, title, message, time = new Date()) {
+      const statusList = document.getElementById('statusList');
+      const statusPanel = document.getElementById('statusPanel');
+      
+      const statusItem = document.createElement('div');
+      statusItem.className = status-item ${type};
+      statusItem.innerHTML = 
+        <div class="status-icon ${type}">${type === 'success' ? '✓' : type === 'error' ? '✗' : '⋯'}</div>
+        <div class="status-content">
+          <div class="status-title">${title}</div>
+          <div class="status-message">${message}</div>
+        </div>
+        <div class="status-time">${formatTime(time)}</div>
+      ;
+      
+      statusList.appendChild(statusItem);
+      statusPanel.classList.add('show');
+      
+      // Scroll para o último item
+      statusItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Configuração dos inputs de arquivo
+    function setupFileInput(inputId, displayId, infoId, nameId, sizeId) {
+      const input = document.getElementById(inputId);
+      const display = document.getElementById(displayId);
+      const info = document.getElementById(infoId);
+      const nameSpan = document.getElementById(nameId);
+      const sizeSpan = document.getElementById(sizeId);
+
+      // Drag and drop
+      display.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        display.classList.add('dragover');
+      });
+
+      display.addEventListener('dragleave', () => {
+        display.classList.remove('dragover');
+      });
+
+      display.addEventListener('drop', (e) => {
+        e.preventDefault();
+        display.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          input.files = files;
+          handleFileSelect(files[0], display, info, nameSpan, sizeSpan);
+        }
+      });
+
+      input.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFileSelect(e.target.files[0], display, info, nameSpan, sizeSpan);
+        }
+      });
+    }
+
+    function handleFileSelect(file, display, info, nameSpan, sizeSpan) {
+      display.classList.add('has-file');
+      display.innerHTML = 
+        <div class="file-icon">📄</div>
+        <div class="file-text">Arquivo selecionado</div>
+        <div class="file-subtext">Pronto para upload</div>
+      ;
+      
+      nameSpan.textContent = file.name;
+      sizeSpan.textContent = formatFileSize(file.size);
+      info.classList.add('show');
+    }
+
+    // Função de upload melhorada
+    async function enviarArquivo(file, url, tipo) {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const button = document.getElementById(btn${tipo.charAt(0).toUpperCase() + tipo.slice(1)});
+      const card = document.getElementById(card${tipo.charAt(0).toUpperCase() + tipo.slice(1)});
+      
+      // Estado de loading
+      button.disabled = true;
+      button.classList.add('loading');
+      button.innerHTML = 
+        <div class="loading-spinner"></div>
+        <span>Enviando...</span>
+      ;
+      card.classList.add('processing');
+      
+      addStatusItem('processing', Upload de ${tipo}, Enviando arquivo ${file.name}...);
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          body: formData
+        });
+
+        if (res.ok) {
+          // Estado de sucesso
+          button.classList.remove('loading');
+          button.classList.add('success');
+          button.innerHTML = 
+            <span>✓ Enviado com sucesso</span>
+          ;
+          card.classList.remove('processing');
+          
+          uploadStates[tipo] = { uploaded: true, uploadTime: new Date() };
+          
+          addStatusItem('success', Upload de ${tipo} concluído, Arquivo ${file.name} enviado com sucesso);
+          
+          // Verificar se ambos os arquivos foram enviados
+          if (uploadStates.requisitos.uploaded && uploadStates.candidatos.uploaded) {
+            startAutomationStatusCheck();
+          }
+          
+          // Reset button after 3 seconds
+          setTimeout(() => {
+            button.disabled = false;
+            button.classList.remove('success');
+            button.innerHTML = <span>Enviar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</span>;
+          }, 3000);
+          
+        } else {
+          throw new Error(${res.status} - ${res.statusText});
+        }
+      } catch (err) {
+        // Estado de erro
+        button.disabled = false;
+        button.classList.remove('loading');
+        card.classList.remove('processing');
+        button.innerHTML = <span>Tentar novamente</span>;
+        
+        addStatusItem('error', Erro no upload de ${tipo}, Falha ao enviar: ${err.message});
+      }
+    }
+
+    // Sistema de monitoramento da automação
+    function startAutomationStatusCheck() {
+      automationStartTime = new Date();
+      addStatusItem('processing', 'Automação iniciada', 'Processando análise dos candidatos...');
+      
+      // Inicia verificação de status a cada 5 segundos
+      statusCheckInterval = setInterval(checkAutomationStatus, 5000);
+    }
+
+    async function checkAutomationStatus() {
+      try {
+        // IMPLEMENTAÇÃO REAL - descomente e configure com seu endpoint N8N
+        /*
+        const response = await fetch(URL_STATUS);
+        const status = await response.json();
+        
+        if (status.status === 'completed') {
+          clearInterval(statusCheckInterval);
+          showAutomationComplete(status);
+        } else if (status.status === 'failed') {
+          clearInterval(statusCheckInterval);
+          addStatusItem('error', 'Automação falhou', status.message || 'Erro no processamento');
+        }
+        // Continue polling se status === 'running'
+        */
+        
+        // SIMULAÇÃO PARA DEMO - remova na implementação real
+        const elapsedTime = new Date() - automationStartTime;
+        if (elapsedTime > 15000) { // 15 segundos para demo
+          clearInterval(statusCheckInterval);
+          showAutomationComplete();
+          return;
+        }
+        
+      } catch (error) {
+        console.error('Erro ao verificar status da automação:', error);
+        // Continua tentando em caso de erro de rede
+      }
+    }
+
+    function showAutomationComplete(statusData = null) {
+      const processingTime = Math.round((new Date() - automationStartTime) / 1000);
+      
+      addStatusItem('success', 'Automação concluída', 'Análise dos candidatos finalizada com sucesso');
+      
+      const automationStatus = document.getElementById('automationStatus');
+      const processingTimeSpan = document.getElementById('processingTime');
+      
+      processingTimeSpan.textContent = ${processingTime} segundos;
+      
+      automationStatus.classList.remove('hidden');
+      automationStatus.classList.add('show');
+      
+      // Scroll para mostrar o resultado
+      automationStatus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Se você tiver dados específicos do N8N, pode mostrá-los aqui:
+      if (statusData) {
+        const details = document.getElementById('automationDetails');
+        details.innerHTML = 
+          Processamento finalizado em ${processingTime} segundos<br>
+          <small>Candidatos analisados: ${statusData.processedRecords || 'N/A'}</small><br>
+          <small>Status: ${statusData.message || 'Análise concluída com sucesso'}</small>
+        ;
+      }
+    }
+
+    // Event listeners
+    document.getElementById("formRequisitos").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const file = document.getElementById("fileRequisitos").files[0];
+      if (file) enviarArquivo(file, URL_REQUISITOS, "requisitos");
+    });
+
+    document.getElementById("formCandidatos").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const file = document.getElementById("fileCandidatos").files[0];
+      if (file) enviarArquivo(file, URL_CANDIDATOS, "candidatos");
+    });
+
+    // Inicialização
+    setupFileInput('fileRequisitos', 'displayRequisitos', 'infoRequisitos', 'nameRequisitos', 'sizeRequisitos');
+    setupFileInput('fileCandidatos', 'displayCandidatos', 'infoCandidatos', 'nameCandidatos', 'sizeCandidatos');
+  </script>
+</body>
+</html>
